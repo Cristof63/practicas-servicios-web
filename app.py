@@ -20,6 +20,8 @@ from blueprints.practica4 import practica4
 from blueprints.practica5 import practica5
 from blueprints.practica6 import practica6
 
+import os
+
 BASE_DIR = Path(__file__).parent
 
 app = Flask(__name__)
