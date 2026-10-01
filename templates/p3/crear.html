@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block titulo %}Agregar producto{% endblock %}
+
+{% block contenido %}
+    <div class="contenedor-ancho">
+        <div class="tarjeta">
+            <div class="encabezado">Agregar producto</div>
+            <div class="cuerpo">
+                <form method="POST">
+                    <div class="campo">
+                        <label for="nombre">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="campo">
+                        <label for="descripcion">Descripción</label>
+                        <textarea id="descripcion" name="descripcion" rows="3" required></textarea>
+                    </div>
+                    <div class="fila">
+                        <div class="campo">
+                            <label for="precio">Precio</label>
+                            <input type="number" id="precio" name="precio" step="0.01" min="0" required>
+                        </div>
+                        <div class="campo">
+                            <label for="existencia">Existencia</label>
+                            <input type="number" id="existencia" name="existencia" step="1" min="0" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="boton boton-verde">Guardar</button>
+                    <a class="boton boton-gris" href="{{ url_for('practica3.index') }}">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

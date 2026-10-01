@@ -1,0 +1,21 @@
+{
+  "datosPersonales": {
+    "nombre": "Robledo Martínez",
+    "ocupacion": "Programador en Automatización",
+    "correo": "Cristopher.Robledo.Martinez@upvm.edu.mx",
+    "iniciales": "RM"
+  },
+  "ubicacion": {
+    "etiqueta": "San Pablo de las Salinas, Tultitlán, Edo. Méx.",
+    "direccion": "San Pablo de las Salinas, Tultitlán, Edo. Méx.",
+    "lat": 19.66556,
+    "lng": -99.09167,
+    "zoom": 15
+  },
+  "apiKeyGoogle": "AQUI_TU_API_KEY",
+  "solutionChannel": "GMP_GE_mapsandplacesautocomplete_v2",
+  "instrucciones": {
+    "generar": "1) Google Cloud Console → crea un proyecto. 2) Habilita Maps JavaScript API. 3) Crear credenciales → API Key. 4) Restricción por aplicación: HTTP referrers (dominio y localhost). 5) Restricciones de API: solo Maps JavaScript API.",
+    "dominio": "Agrega tu dominio público (https://tudominio/*) y para desarrollo http://localhost:*/*"
+  }
+}

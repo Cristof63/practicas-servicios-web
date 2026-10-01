@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block titulo %}Formulario de encuesta{% endblock %}
+
+{% block contenido %}
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="h4 mb-1">Formulario de encuesta</h1>
+                    <p class="text-muted small">Respuestas recibidas: {{ total }}</p>
+
+                    <form method="POST" action="{{ url_for('practica6.encuesta') }}">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">1. Nombre completo</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="carrera" class="form-label">2. Carrera que estudias</label>
+                            <select class="form-select" id="carrera" name="carrera" required>
+                                <option value="" selected disabled>Selecciona una opción</option>
+                                <option>Sistemas</option>
+                                <option>Industrial</option>
+                                <option>Robótica</option>
+                                <option>Civil</option>
+                                <option>Industrial y Electrónica</option>
+                                <option>Química</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="factor" class="form-label">3. ¿Qué factor valoras más de la UPVM?</label>
+                            <select class="form-select" id="factor" name="factor" required>
+                                <option value="" selected disabled>Selecciona una opción</option>
+                                <option>Profesores</option>
+                                <option>Instalaciones y laboratorios</option>
+                                <option>Biblioteca</option>
+                                <option>Planta académica</option>
+                                <option>Servicios administrativos</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="instalaciones" class="form-label">4. ¿Cómo calificarías las instalaciones?</label>
+                            <select class="form-select" id="instalaciones" name="instalaciones" required>
+                                <option value="" selected disabled>Selecciona una opción</option>
+                                <option>Excelente</option>
+                                <option>Buena</option>
+                                <option>Regular</option>
+                                <option>Mala</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="mejora" class="form-label">5. ¿Qué mejorarías en la UPVM?</label>
+                            <textarea class="form-control" id="mejora" name="mejora" rows="3" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">Enviar respuestas</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
