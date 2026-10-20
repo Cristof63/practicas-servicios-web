@@ -1,0 +1,15 @@
+{
+  "datosPersonales": {
+    "nombre": "Robledo Martínez",
+    "ocupacion": "Programador en Automatización",
+    "correo": "Cristopher.Robledo.Martinez@upvm.edu.mx",
+    "iniciales": "RM"
+  },
+  "ubicacion": {
+    "etiqueta": "San Pablo de las Salinas, Tultitlán, Edo. Méx.",
+    "direccion": "San Pablo de las Salinas, Tultitlán, Edo. Méx.",
+    "lat": 19.66556,
+    "lng": -99.09167,
+    "zoom": 15
+  }
+}

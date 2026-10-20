@@ -1,0 +1,32 @@
+/* Estilos de la Práctica 4 (mapa y mapa interactivo). */
+
+html {
+  scroll-behavior: smooth;
+}
+
+section {
+  margin-bottom: 30px;
+}
+
+.ocupacion {
+  color: #6c757d;
+}
+
+.marco {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+#como-llegar iframe {
+  width: 100%;
+  height: 420px;
+  border: 0;
+  display: block;
+}
+
+#mapa-leaflet {
+  width: 100%;
+  height: 420px;
+  background: #e9ecef;
+}
