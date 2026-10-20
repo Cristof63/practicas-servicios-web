@@ -65,7 +65,34 @@ Abre <http://localhost:8000>
 
 ---
 
-## 4. Compartirlo con un enlace público
+## 4. Desplegar en Render
+
+Render **no** tiene runtime nativo de PHP, así que el sitio se publica con
+**Docker** (incluido en `Dockerfile`: Apache + PHP 8.3 + `pdo_mysql`).
+
+1. En Render: **New → Web Service** y conecta este repositorio de Git.
+2. En *Language* elige **Docker** (Render detecta el `Dockerfile` solo).
+3. Crea una base de datos MySQL (Render no da MySQL administrado; sirve
+   PlanetScale, Aiven, Clever Cloud, etc.) y copia sus datos.
+4. Agrega las **Environment Variables** en Render:
+
+   | Variable      | Ejemplo                    |
+   |---------------|----------------------------|
+   | `DB_HOST`     | `tu-host.mysql.database`   |
+   | `DB_PORT`     | `3306`                     |
+   | `DB_USUARIO`  | `usuario`                  |
+   | `DB_PASSWORD` | `contraseña`               |
+   | `DB_NOMBRE`   | `awos`                     |
+
+   `config.php` lee esas variables; si no existen usa los valores locales.
+
+5. Deploy. Las tablas (`productos`, `estudiantes`, `respuestas`) se crean solas
+   al abrir cada práctica.
+
+> El archivo `render.yaml` permite crear el servicio como *Blueprint*; en ese
+> caso los valores de `DB_*` marcados con `sync: false` se piden en el panel.
+
+### Compartirlo con un enlace público (local)
 
 ### Opción A · Túnel de VS Code
 

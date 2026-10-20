@@ -1,0 +1,9 @@
+.git
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+*.md
+*.zip
+*.pdf
+bonsai.sh

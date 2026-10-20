@@ -10,11 +10,25 @@ session_start();
 
 define('BASE_DIR', __DIR__);
 
-/* Datos de la conexión MySQL (los de XAMPP / MAMP). */
-define('DB_HOST', '127.0.0.1:8889');   // MAMP usa el puerto 8889, XAMPP el 3306
-define('DB_USUARIO', 'root');
-define('DB_PASSWORD', 'root');   // XAMPP suele dejarla vacía: ''
-define('DB_NOMBRE', 'awos');
+/*
+| Datos de la conexión MySQL.
+|
+| En local (XAMPP / MAMP) se usan los valores por defecto. En un hosting como
+| Render se toman de las variables de entorno (Environment Variables), por
+| ejemplo: DB_HOST=... DB_PORT=3306 DB_USUARIO=... DB_PASSWORD=... DB_NOMBRE=...
+*/
+function variable_entorno(string $nombre, string $porDefecto): string
+{
+    $valor = getenv($nombre);
+
+    return ($valor === false || $valor === '') ? $porDefecto : $valor;
+}
+
+$puertoBd = variable_entorno('DB_PORT', '8889');   // MAMP usa 8889, XAMPP/Render 3306
+define('DB_HOST', variable_entorno('DB_HOST', '127.0.0.1') . ':' . $puertoBd);
+define('DB_USUARIO', variable_entorno('DB_USUARIO', 'root'));
+define('DB_PASSWORD', variable_entorno('DB_PASSWORD', 'root'));
+define('DB_NOMBRE', variable_entorno('DB_NOMBRE', 'awos'));
 
 // ------------------------------------------------------------------
 // BASE DE DATOS
