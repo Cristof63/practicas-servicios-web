@@ -31,6 +31,16 @@ $tarjetas = [
         'texto' => 'Incrustación de un video con un botón que lo muestra en la página.',
         'ruta' => '/p7',
     ],
+    [
+        'titulo' => 'Práctica 8',
+        'texto' => 'Panel de métricas: visitas, clics y tiempo en todo el sitio, con servicios JSON.',
+        'ruta' => '/p8',
+    ],
+    [
+        'titulo' => 'Práctica 9',
+        'texto' => 'CRUD de una tienda tipo OXXO: productos, precios, inventario y promociones.',
+        'ruta' => '/p9',
+    ],
 ];
 
 require __DIR__ . '/parciales/cabecera.php';

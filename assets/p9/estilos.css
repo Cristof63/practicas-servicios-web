@@ -1,0 +1,171 @@
+/* Práctica 9 · Tienda tipo OXXO */
+
+.tienda-oxxo .banner-oxxo {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 18px;
+    padding: 22px 24px;
+    border-radius: 10px;
+    background-color: #c62828;
+    color: #fff;
+}
+
+.tienda-oxxo .logo-oxxo {
+    padding: 8px 14px;
+    border-radius: 6px;
+    background-color: #ffd54f;
+    color: #c62828;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    line-height: 1;
+}
+
+.tienda-oxxo .banner-oxxo h1 {
+    margin-bottom: 4px;
+    color: #fff;
+    font-size: 24px;
+}
+
+.tienda-oxxo .banner-oxxo p {
+    margin: 0;
+    color: #ffe5e5;
+    font-size: 14px;
+}
+
+.resumen-tienda {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.resumen-tienda > div {
+    padding: 12px 14px;
+    border: 1px solid #e0e0e0;
+    border-left: 5px solid #c62828;
+    border-radius: 6px;
+    background-color: #fff;
+}
+
+.resumen-tienda strong {
+    display: block;
+    color: #c62828;
+    font-size: 1.35rem;
+}
+
+.resumen-tienda span {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+.filtros-tienda {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.filtros-tienda input,
+.filtros-tienda select {
+    padding: 9px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    background-color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+}
+
+.filtros-tienda input {
+    flex: 1 1 260px;
+}
+
+.acciones-tienda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.tienda-oxxo .tabla-scroll {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.tienda-oxxo .tabla-scroll .tabla {
+    min-width: 900px;
+}
+
+.precio-tienda {
+    color: #c62828;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.etiqueta-stock {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.etiqueta-stock.disponible {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+}
+
+.etiqueta-stock.pocas {
+    background-color: #fff8e1;
+    color: #8d6e00;
+}
+
+.etiqueta-stock.agotado {
+    background-color: #fdecea;
+    color: #b71c1c;
+}
+
+.etiqueta-promo {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background-color: #fff8e1;
+    color: #8d6e00;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.texto-tenue {
+    color: #999;
+}
+
+.tienda-oxxo .tarjeta {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    overflow: hidden;
+}
+
+.tienda-oxxo .tarjeta .encabezado {
+    background-color: #c62828;
+}
+
+.tienda-oxxo .aviso form {
+    margin-top: 10px;
+}
+
+@media (max-width: 575px) {
+    .tienda-oxxo .banner-oxxo {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .tienda-oxxo .banner-oxxo h1 {
+        font-size: 20px;
+    }
+}

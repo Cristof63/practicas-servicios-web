@@ -23,8 +23,15 @@ $haySesion = isset($_SESSION['usuario']);
               integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
         <link rel="stylesheet" href="<?= e(enlace('assets/p4/estilos.css')) ?>">
     <?php endif; ?>
+    <?php if (!empty($scriptsP8)): ?>
+        <link rel="stylesheet" href="<?= e(enlace('assets/p8/estilos.css')) ?>">
+    <?php endif; ?>
+    <?php if (!empty($scriptsP9)): ?>
+        <link rel="stylesheet" href="<?= e(enlace('assets/p9/estilos.css')) ?>">
+    <?php endif; ?>
 </head>
-<body data-api="<?= e(enlace('assets/p4/api.json')) ?>">
+<body data-api="<?= e(enlace('assets/p4/api.json')) ?>"
+      data-eventos="<?= e(enlace('p8/eventos')) ?>">
 
 <nav class="barra">
     <div class="barra-contenedor">
@@ -41,6 +48,8 @@ $haySesion = isset($_SESSION['usuario']);
                     <a href="<?= e(enlace('p5')) ?>">Práctica 5 · Estudiantes</a>
                     <a href="<?= e(enlace('p6')) ?>">Práctica 6 · Encuesta</a>
                     <a href="<?= e(enlace('p7')) ?>">Práctica 7 · Video</a>
+                    <a href="<?= e(enlace('p8')) ?>">Práctica 8 · Métricas</a>
+                    <a href="<?= e(enlace('p9')) ?>">Práctica 9 · Tienda OXXO</a>
                 </div>
             </div>
 

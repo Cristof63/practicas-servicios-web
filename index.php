@@ -11,6 +11,8 @@ declare(strict_types=1);
 |   /p5/...      -> Práctica 5
 |   /p6/...      -> Práctica 6
 |   /p7/...      -> Práctica 7
+|   /p8/...      -> Práctica 8
+|   /p9/...      -> Práctica 9
 */
 
 require_once __DIR__ . '/config.php';
@@ -40,6 +42,14 @@ switch ($seccion) {
 
     case 'p7':
         require __DIR__ . '/p7.php';
+        break;
+
+    case 'p8':
+        require __DIR__ . '/p8.php';
+        break;
+
+    case 'p9':
+        require __DIR__ . '/p9.php';
         break;
 
     default:

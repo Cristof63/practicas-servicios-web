@@ -1,0 +1,51 @@
+/* Práctica 8 · Panel de métricas */
+
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin: 20px 0 8px;
+}
+
+.kpi {
+    padding: 14px 16px;
+    border: 1px solid #dbe6f0;
+    border-radius: 8px;
+    background-color: #eef3f8;
+}
+
+.kpi strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #1f4e79;
+    font-size: 1.6rem;
+    line-height: 1.1;
+}
+
+.kpi span {
+    color: #5b6b7a;
+    font-size: 0.8rem;
+}
+
+.tabla-scroll {
+    overflow-x: auto;
+    margin-bottom: 10px;
+}
+
+.tabla-scroll .tabla {
+    min-width: 640px;
+}
+
+.barra {
+    display: block;
+    height: 6px;
+    margin-top: 4px;
+    border-radius: 3px;
+    background-color: #4a90c2;
+}
+
+@media (max-width: 575px) {
+    .kpi strong {
+        font-size: 1.35rem;
+    }
+}

@@ -9,24 +9,14 @@ declare(strict_types=1);
 */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/parciales/tablas.php';
 
 $partes = array_slice(explode('/', $ruta), 1);
 $vista = $partes[0] ?? '';
 $accion = $partes[1] ?? '';
 $id = isset($partes[2]) ? (int) $partes[2] : null;
 
-crear_tabla('
-    CREATE TABLE IF NOT EXISTS estudiantes (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        matricula VARCHAR(20) NOT NULL UNIQUE,
-        nombre VARCHAR(80) NOT NULL,
-        apellido VARCHAR(80) NOT NULL,
-        carrera VARCHAR(120) NOT NULL,
-        correo VARCHAR(120) NOT NULL,
-        promedio DECIMAL(4, 2) NOT NULL,
-        password_hash VARCHAR(255) NOT NULL
-    ) ENGINE = InnoDB
-');
+crear_tabla_estudiantes();
 
 /**
  * Si no hay sesión abierta, manda al login.
