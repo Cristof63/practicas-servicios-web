@@ -597,10 +597,13 @@ if ($vista === '') {
                href="<?= e(enlace('p9/crear')) ?>">Agregar producto</a>
             <a class="boton boton-chat" data-track="p9: abrir chat"
                href="<?= e(enlace('p9/chat')) ?>">Chat de la tienda</a>
+            <a class="boton boton-video" data-track="p9: ver video"
+               href="#video-tienda">Video de la tienda</a>
             <a class="boton boton-gris" data-track="p9: ver métricas"
                href="<?= e(enlace('p8/panel')) ?>">Ver métricas de la tienda</a>
         </div>
 
+        <div id="productos-tienda">
         <?php if ($productos): ?>
             <div class="tabla-scroll">
                 <table class="tabla">
@@ -673,6 +676,32 @@ if ($vista === '') {
                 <?php endif; ?>
             </div>
         <?php endif; ?>
+        </div>
+
+        <section class="video-tienda" id="video-tienda">
+            <div class="video-tienda-encabezado">
+                <div>
+                    <h2>Video de la tienda</h2>
+                    <p class="pequena">
+                        Un recorrido por la tienda OXXO y sus productos.
+                    </p>
+                </div>
+                <a class="boton boton-gris" data-track="p9: volver a productos"
+                   href="#productos-tienda">Volver a productos</a>
+            </div>
+
+            <div class="video-marco">
+                <video class="video-practica" controls preload="metadata">
+                    <source src="<?= e(enlace('assets/p9/video-tienda.mp4')) ?>" type="video/mp4">
+                    Tu navegador no soporta la reproducción de video en HTML5.
+                </video>
+            </div>
+
+            <p class="pequena centrado">
+                Video de la tienda · Archivo:
+                <code>assets/p9/video-tienda.mp4</code>
+            </p>
+        </section>
     </div>
 
     <?php

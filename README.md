@@ -141,7 +141,7 @@ web_general/
     ├── foto.jpg
     ├── p4/                 # api.json, main.js, mapa.js, estilos.css
     ├── p8/                 # tracker.js, panel.js, estilos.css
-    └── p9/                 # estilos.css, chat.js
+    └── p9/                 # estilos.css, chat.js, video-tienda.mp4
 ```
 
 ### Práctica 8 · Métricas del sitio
@@ -190,6 +190,10 @@ iniciar sesión; el chat sí requiere una cuenta.
 ```sql
 TRUNCATE TABLE chat_mensajes;
 ```
+
+Al final de `/p9` también está la sección **Video de la tienda**, que reproduce
+`assets/p9/video-tienda.mp4` con la etiqueta HTML5 `<video>`. El botón
+**Video de la tienda** lleva directo a esa sección.
 
 ### La práctica 4 necesita tu API Key
 
