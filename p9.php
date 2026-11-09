@@ -442,7 +442,7 @@ if ($vista === 'chat') {
 
     <div class="tienda-oxxo">
         <div class="banner-oxxo chat-banner">
-            <div class="logo-oxxo">OXXO</div>
+            <img class="logo-oxxo" src="<?= e(enlace('assets/p9/logo.png')) ?>" alt="Logo OXXO">
             <div>
                 <h1>Chat de la tienda</h1>
                 <p>
@@ -563,7 +563,7 @@ if ($vista === '') {
 
     <div class="tienda-oxxo">
         <div class="banner-oxxo">
-            <div class="logo-oxxo">OXXO</div>
+            <img class="logo-oxxo" src="<?= e(enlace('assets/p9/logo.png')) ?>" alt="Logo OXXO">
             <div>
                 <h1>Tienda OXXO · CRUD de productos</h1>
                 <p>Productos, precios y existencias de una tienda mexicana.</p>

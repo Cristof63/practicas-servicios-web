@@ -141,7 +141,7 @@ web_general/
     ├── foto.jpg
     ├── p4/                 # api.json, main.js, mapa.js, estilos.css
     ├── p8/                 # tracker.js, panel.js, estilos.css
-    └── p9/                 # estilos.css, chat.js, video-tienda.mp4
+    └── p9/                 # estilos.css, chat.js, video-tienda.mp4, logo.png
 ```
 
 ### Práctica 8 · Métricas del sitio
@@ -194,6 +194,9 @@ TRUNCATE TABLE chat_mensajes;
 Al final de `/p9` también está la sección **Video de la tienda**, que reproduce
 `assets/p9/video-tienda.mp4` con la etiqueta HTML5 `<video>`. El botón
 **Video de la tienda** lleva directo a esa sección.
+
+El logo del banner de la tienda y del chat se toma de
+`assets/p9/logo.png`.
 
 ### La práctica 4 necesita tu API Key
 
