@@ -373,3 +373,106 @@
         flex-direction: column;
     }
 }
+
+/* ------------------------- SUCURSALES --------------------------- */
+
+.boton-mapa {
+    background-color: #1565c0;
+}
+
+.sucursales-tienda {
+    margin-top: 28px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-top: 5px solid #c62828;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
+.sucursales-encabezado {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.sucursales-encabezado h2 {
+    margin-bottom: 4px;
+}
+
+.sucursales-encabezado .pequena {
+    margin-bottom: 0;
+}
+
+.sucursales-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+    gap: 18px;
+}
+
+.mapa-sucursales {
+    width: 100%;
+    height: 420px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #e9ecef;
+}
+
+.lista-sucursales {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 420px;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.lista-sucursales li {
+    padding: 10px 12px;
+    border: 1px solid #eee;
+    border-left: 4px solid #c62828;
+    border-radius: 6px;
+    background-color: #fafafa;
+}
+
+.lista-sucursales strong {
+    display: block;
+    color: #c62828;
+}
+
+.lista-sucursales span {
+    display: block;
+    font-size: 14px;
+}
+
+.lista-sucursales small {
+    color: #666;
+    font-size: 12px;
+}
+
+@media (max-width: 767px) {
+    .sucursales-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mapa-sucursales {
+        height: 340px;
+    }
+
+    .lista-sucursales {
+        max-height: none;
+    }
+}
+
+@media (max-width: 575px) {
+    .sucursales-tienda {
+        padding: 14px;
+    }
+
+    .sucursales-encabezado {
+        flex-direction: column;
+    }
+}

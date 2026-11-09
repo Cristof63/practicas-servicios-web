@@ -141,7 +141,7 @@ web_general/
     ├── foto.jpg
     ├── p4/                 # api.json, main.js, mapa.js, estilos.css
     ├── p8/                 # tracker.js, panel.js, estilos.css
-    └── p9/                 # estilos.css, chat.js, video-tienda.mp4, logo.png
+    └── p9/                 # estilos.css, chat.js, mapa.js, video-tienda.mp4, logo.png
 ```
 
 ### Práctica 8 · Métricas del sitio
@@ -191,9 +191,15 @@ iniciar sesión; el chat sí requiere una cuenta.
 TRUNCATE TABLE chat_mensajes;
 ```
 
-Al final de `/p9` también está la sección **Video de la tienda**, que reproduce
-`assets/p9/video-tienda.mp4` con la etiqueta HTML5 `<video>`. El botón
-**Video de la tienda** lleva directo a esa sección.
+Al final de `/p9` también están las secciones **Sucursales de la tienda** y
+**Video de la tienda**:
+
+- **Sucursales** muestra un mapa de Leaflet con OpenStreetMap y seis sucursales
+  de ejemplo con coordenadas aleatorias alrededor de la tienda. Las ubicaciones
+  se guardan en la sesión para que no cambien al recargar; el enlace
+  `/p9?nuevas_sucursales=1#sucursales` genera otras distintas.
+- **Video de la tienda** reproduce `assets/p9/video-tienda.mp4` con la etiqueta
+  HTML5 `<video>`. El botón **Video de la tienda** lleva directo a esa sección.
 
 El logo del banner de la tienda y del chat se toma de
 `assets/p9/logo.png`.

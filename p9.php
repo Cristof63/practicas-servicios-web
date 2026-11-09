@@ -226,6 +226,56 @@ function chat_mensajes(int $desde = 0, int $limite = 100): array
 }
 
 // ------------------------------------------------------------------
+// SUCURSALES DE EJEMPLO
+// ------------------------------------------------------------------
+
+/**
+ * Genera sucursales con coordenadas aleatorias alrededor de la tienda.
+ */
+function generar_sucursales(): array
+{
+    $centroLat = 19.66556;
+    $centroLng = -99.09167;
+
+    $datos = [
+        ['Sucursal Centro', 'Av. Juárez', 'Centro'],
+        ['Sucursal Norte', 'Av. Insurgentes', 'San Pablo'],
+        ['Sucursal Sur', 'Calle Hidalgo', 'Tultitlán'],
+        ['Sucursal Oriente', 'Blvd. Aeropuerto', 'Coacalco'],
+        ['Sucursal Poniente', 'Av. Morelos', 'Cuautitlán'],
+        ['Sucursal Plaza', 'Calle 5 de Mayo', 'Ecatepec'],
+    ];
+
+    $sucursales = [];
+
+    foreach ($datos as [$nombre, $calle, $colonia]) {
+        $sucursales[] = [
+            'nombre' => $nombre,
+            'direccion' => $calle . ' ' . random_int(100, 999) . ', Col. ' . $colonia,
+            'horario' => 'Lun a Dom · ' . random_int(7, 9) . ':00 a ' . random_int(20, 23) . ':00',
+            'telefono' => '55 ' . random_int(1000, 9999) . ' ' . random_int(1000, 9999),
+            // ±0.045 grados ≈ ±5 km alrededor de la ubicación de la tienda.
+            'lat' => round($centroLat + (random_int(-4500, 4500) / 100000), 6),
+            'lng' => round($centroLng + (random_int(-4500, 4500) / 100000), 6),
+        ];
+    }
+
+    return $sucursales;
+}
+
+/**
+ * Devuelve las sucursales guardadas en la sesión; si no hay, las genera.
+ */
+function sucursales_tienda(): array
+{
+    if (empty($_SESSION['sucursales_p9']) || !is_array($_SESSION['sucursales_p9'])) {
+        $_SESSION['sucursales_p9'] = generar_sucursales();
+    }
+
+    return $_SESSION['sucursales_p9'];
+}
+
+// ------------------------------------------------------------------
 // CATÁLOGO DE EJEMPLO
 // ------------------------------------------------------------------
 
@@ -512,6 +562,15 @@ if ($vista === 'chat') {
 if ($vista === '') {
     $titulo = 'Práctica 9 · Tienda OXXO';
 
+    // Permite generar otras ubicaciones aleatorias para las sucursales.
+    if (isset($_GET['nuevas_sucursales'])) {
+        unset($_SESSION['sucursales_p9']);
+        redirigir('p9#sucursales');
+    }
+
+    $sucursales = sucursales_tienda();
+    $scriptsMapaP9 = true;
+
     $busqueda = trim((string) ($_GET['q'] ?? ''));
     $categoria = trim((string) ($_GET['categoria'] ?? ''));
 
@@ -599,6 +658,8 @@ if ($vista === '') {
                href="<?= e(enlace('p9/chat')) ?>">Chat de la tienda</a>
             <a class="boton boton-video" data-track="p9: ver video"
                href="#video-tienda">Video de la tienda</a>
+            <a class="boton boton-mapa" data-track="p9: ver sucursales"
+               href="#sucursales">Sucursales</a>
             <a class="boton boton-gris" data-track="p9: ver métricas"
                href="<?= e(enlace('p8/panel')) ?>">Ver métricas de la tienda</a>
         </div>
@@ -677,6 +738,40 @@ if ($vista === '') {
             </div>
         <?php endif; ?>
         </div>
+
+        <section class="sucursales-tienda" id="sucursales">
+            <div class="sucursales-encabezado">
+                <div>
+                    <h2>Sucursales de la tienda</h2>
+                    <p class="pequena">
+                        Ubicaciones de ejemplo generadas aleatoriamente alrededor de la tienda.
+                    </p>
+                </div>
+                <a class="boton boton-gris" data-track="p9: cambiar sucursales"
+                   href="<?= e(enlace('p9?nuevas_sucursales=1#sucursales')) ?>">
+                    Cambiar sucursales
+                </a>
+            </div>
+
+            <div class="sucursales-grid">
+                <div id="mapa-sucursales" class="mapa-sucursales"
+                     data-sucursales="<?= e(json_encode($sucursales, JSON_UNESCAPED_UNICODE)) ?>"
+                     aria-label="Mapa de sucursales de la tienda"></div>
+
+                <ul class="lista-sucursales">
+                    <?php foreach ($sucursales as $sucursal): ?>
+                        <li>
+                            <strong><?= e($sucursal['nombre']) ?></strong>
+                            <span><?= e($sucursal['direccion']) ?></span>
+                            <small>
+                                <?= e($sucursal['horario']) ?> ·
+                                Tel. <?= e($sucursal['telefono']) ?>
+                            </small>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        </section>
 
         <section class="video-tienda" id="video-tienda">
             <div class="video-tienda-encabezado">

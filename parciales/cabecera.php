@@ -18,9 +18,11 @@ $haySesion = isset($_SESSION['usuario']);
     <title><?= e($titulo) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= e(enlace('assets/estilos.css')) ?>">
-    <?php if (!empty($scriptsP4)): ?>
+    <?php if (!empty($scriptsP4) || !empty($scriptsMapaP9)): ?>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
               integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <?php endif; ?>
+    <?php if (!empty($scriptsP4)): ?>
         <link rel="stylesheet" href="<?= e(enlace('assets/p4/estilos.css')) ?>">
     <?php endif; ?>
     <?php if (!empty($scriptsP8)): ?>
