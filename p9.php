@@ -2,17 +2,21 @@
 declare(strict_types=1);
 
 /*
-| Práctica 9: CRUD de una tienda tipo OXXO.
+| Práctica 9: CRUD de una tienda tipo OXXO y chat entre usuarios.
 |
 | Lista, busca, agrega, modifica y elimina productos de una tienda mexicana.
+| También incluye un chat general para las cuentas de la práctica 5, con
+| actualización automática mediante JSON.
 | Usa la misma base de datos awos y las mismas convenciones de las prácticas
 | anteriores (PDO, consultas preparadas y la función e() para escapar HTML).
 */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/parciales/tablas.php';
 
 $partes = array_slice(explode('/', $ruta), 1);
 $vista = $partes[0] ?? '';
+$accion = $partes[1] ?? '';
 $id = isset($partes[1]) ? (int) $partes[1] : null;
 
 $scriptsP9 = true;
@@ -122,6 +126,106 @@ function guardar_producto(array $datos): void
 }
 
 // ------------------------------------------------------------------
+// CHAT ENTRE USUARIOS
+// ------------------------------------------------------------------
+
+/**
+ * Crea la tabla donde se guardan los mensajes del chat.
+ */
+function crear_tabla_chat(): void
+{
+    crear_tabla('
+        CREATE TABLE IF NOT EXISTS chat_mensajes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            autor_matricula VARCHAR(20) NOT NULL,
+            autor_nombre VARCHAR(180) NOT NULL,
+            mensaje VARCHAR(500) NOT NULL,
+            creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_chat_creado (creado_en)
+        ) ENGINE = InnoDB
+    ');
+}
+
+/**
+ * Devuelve el estudiante que tiene la sesión abierta en la práctica 5.
+ * Si la cuenta ya no existe, cierra la sesión.
+ */
+function chat_autor(): ?array
+{
+    if (!isset($_SESSION['usuario'])) {
+        return null;
+    }
+
+    $consulta = bd()->prepare(
+        'SELECT matricula, nombre, apellido
+         FROM estudiantes
+         WHERE matricula = :matricula'
+    );
+    $consulta->execute(['matricula' => $_SESSION['usuario']]);
+    $autor = $consulta->fetch();
+
+    if ($autor === false) {
+        unset($_SESSION['usuario']);
+
+        return null;
+    }
+
+    return $autor;
+}
+
+/**
+ * Token para que otra página no pueda enviar mensajes en nombre del usuario.
+ */
+function chat_token(): string
+{
+    if (empty($_SESSION['chat_token'])) {
+        $_SESSION['chat_token'] = bin2hex(random_bytes(16));
+    }
+
+    return (string) $_SESSION['chat_token'];
+}
+
+/**
+ * Cuenta caracteres sin depender de mbstring (la imagen Docker no la incluye).
+ */
+function largo_chat(string $texto): int
+{
+    return function_exists('mb_strlen') ? mb_strlen($texto, 'UTF-8') : strlen($texto);
+}
+
+/**
+ * Trae los últimos mensajes o solo los que llegaron después de $desde.
+ */
+function chat_mensajes(int $desde = 0, int $limite = 100): array
+{
+    $limite = max(1, min(200, $limite));
+
+    if ($desde > 0) {
+        $consulta = bd()->prepare(
+            "SELECT id, autor_matricula, autor_nombre, mensaje,
+                    DATE_FORMAT(creado_en, '%d/%m %H:%i') AS hora
+             FROM chat_mensajes
+             WHERE id > :desde
+             ORDER BY id ASC
+             LIMIT $limite"
+        );
+        $consulta->execute(['desde' => $desde]);
+
+        return $consulta->fetchAll();
+    }
+
+    $consulta = bd()->query(
+        "SELECT id, autor_matricula, autor_nombre, mensaje,
+                DATE_FORMAT(creado_en, '%d/%m %H:%i') AS hora
+         FROM chat_mensajes
+         ORDER BY id DESC
+         LIMIT $limite"
+    );
+
+    return array_reverse($consulta->fetchAll());
+}
+
+// ------------------------------------------------------------------
 // CATÁLOGO DE EJEMPLO
 // ------------------------------------------------------------------
 
@@ -169,6 +273,236 @@ if ($vista === 'ejemplo') {
     }
 
     redirigir('p9');
+}
+
+// ------------------------------------------------------------------
+// CHAT DE LA TIENDA
+// ------------------------------------------------------------------
+
+if ($vista === 'chat') {
+    crear_tabla_estudiantes();
+    crear_tabla_chat();
+
+    $autor = chat_autor();
+
+    // Servicio: mensajes nuevos en formato JSON.
+    if ($accion === 'mensajes') {
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            echo json_encode(['error' => 'Usa GET para consultar los mensajes.']);
+            exit;
+        }
+
+        if ($autor === null) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Inicia sesión para ver el chat.']);
+            exit;
+        }
+
+        $desde = max(0, (int) ($_GET['desde'] ?? 0));
+        $mensajes = chat_mensajes($desde);
+
+        foreach ($mensajes as &$mensaje) {
+            $mensaje['es_mio'] = $mensaje['autor_matricula'] === $autor['matricula'];
+        }
+        unset($mensaje);
+
+        $ultimo = $desde;
+        foreach ($mensajes as $mensaje) {
+            $ultimo = max($ultimo, (int) $mensaje['id']);
+        }
+
+        echo json_encode(
+            ['mensajes' => $mensajes, 'ultimo' => $ultimo],
+            JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+        );
+        exit;
+    }
+
+    // Servicio: guardar un mensaje. Responde JSON a fetch y redirige al formulario normal.
+    if ($accion === 'enviar') {
+        $quiereJson = str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json');
+
+        $responder = static function (int $codigo, array $datos) use ($quiereJson): never {
+            if ($quiereJson) {
+                http_response_code($codigo);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode($datos, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+                exit;
+            }
+
+            aviso((string) ($datos['error'] ?? 'No se pudo enviar el mensaje.'), 'error');
+            redirigir('p9/chat');
+        };
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $responder(405, ['error' => 'Usa POST para enviar mensajes.']);
+        }
+
+        if ($autor === null) {
+            $responder(401, ['error' => 'Inicia sesión para escribir en el chat.']);
+        }
+
+        $token = (string) ($_POST['token'] ?? '');
+        if (!hash_equals(chat_token(), $token)) {
+            $responder(403, ['error' => 'La sesión expiró. Recarga la página e inténtalo de nuevo.']);
+        }
+
+        $mensaje = trim((string) ($_POST['mensaje'] ?? ''));
+
+        if ($mensaje === '') {
+            $responder(400, ['error' => 'Escribe un mensaje antes de enviarlo.']);
+        }
+
+        if (largo_chat($mensaje) > 500) {
+            $responder(400, ['error' => 'El mensaje no puede pasar de 500 caracteres.']);
+        }
+
+        // Evita que un mismo usuario mande varios mensajes en el mismo segundo.
+        $ahora = time();
+        if (isset($_SESSION['chat_ultimo']) && $ahora - (int) $_SESSION['chat_ultimo'] < 1) {
+            $responder(429, ['error' => 'Espera un segundo antes de enviar otro mensaje.']);
+        }
+        $_SESSION['chat_ultimo'] = $ahora;
+
+        $consulta = bd()->prepare(
+            'INSERT INTO chat_mensajes (autor_matricula, autor_nombre, mensaje)
+             VALUES (:matricula, :nombre, :mensaje)'
+        );
+        $consulta->execute([
+            'matricula' => $autor['matricula'],
+            'nombre' => trim($autor['nombre'] . ' ' . $autor['apellido']),
+            'mensaje' => $mensaje,
+        ]);
+
+        $idNuevo = (int) bd()->lastInsertId();
+        $consulta = bd()->prepare(
+            "SELECT id, autor_matricula, autor_nombre, mensaje,
+                    DATE_FORMAT(creado_en, '%d/%m %H:%i') AS hora
+             FROM chat_mensajes
+             WHERE id = :id"
+        );
+        $consulta->execute(['id' => $idNuevo]);
+        $nuevo = $consulta->fetch();
+        $nuevo['es_mio'] = true;
+
+        if ($quiereJson) {
+            echo json_encode(
+                ['ok' => true, 'mensaje' => $nuevo, 'ultimo' => $idNuevo],
+                JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+            );
+            exit;
+        }
+
+        redirigir('p9/chat');
+    }
+
+    $titulo = 'Práctica 9 · Chat de la tienda';
+
+    // Sin sesión no se puede conversar, pero se muestra cómo entrar.
+    if ($autor === null) {
+        require __DIR__ . '/parciales/cabecera.php';
+        ?>
+
+        <div class="tienda-oxxo">
+            <div class="contenedor-ancho">
+                <div class="tarjeta">
+                    <div class="encabezado">Chat de la tienda</div>
+                    <div class="cuerpo">
+                        <p>
+                            Para conversar con otros usuarios necesitas iniciar sesión
+                            con tu cuenta de la práctica 5.
+                        </p>
+                        <a class="boton" href="<?= e(enlace('p5/login')) ?>">Iniciar sesión</a>
+                        <a class="boton boton-gris" href="<?= e(enlace('p5/registro')) ?>">Crear cuenta</a>
+                        <a class="boton boton-gris" href="<?= e(enlace('p9')) ?>">Volver a la tienda</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php
+        require __DIR__ . '/parciales/pie.php';
+        exit;
+    }
+
+    $mensajes = chat_mensajes();
+    $ultimoId = 0;
+
+    if ($mensajes !== []) {
+        $ultimoMensaje = end($mensajes);
+        $ultimoId = (int) $ultimoMensaje['id'];
+    }
+
+    require __DIR__ . '/parciales/cabecera.php';
+    ?>
+
+    <div class="tienda-oxxo">
+        <div class="banner-oxxo chat-banner">
+            <div class="logo-oxxo">OXXO</div>
+            <div>
+                <h1>Chat de la tienda</h1>
+                <p>
+                    Conversación entre usuarios ·
+                    <?= e($autor['nombre'] . ' ' . $autor['apellido']) ?>
+                </p>
+            </div>
+        </div>
+
+        <div class="acciones-tienda">
+            <a class="boton boton-gris" data-track="p9: volver de chat"
+               href="<?= e(enlace('p9')) ?>">Volver a la tienda</a>
+            <a class="boton boton-gris" data-track="p9: cerrar sesión desde chat"
+               href="<?= e(enlace('p5/logout')) ?>">Cerrar sesión</a>
+        </div>
+
+        <div class="chat-marco" id="chat"
+             data-mensajes="<?= e(enlace('p9/chat/mensajes')) ?>"
+             data-enviar="<?= e(enlace('p9/chat/enviar')) ?>"
+             data-ultimo="<?= $ultimoId ?>">
+            <div class="chat-mensajes" id="chat-mensajes" aria-live="polite">
+                <?php if ($mensajes === []): ?>
+                    <p class="chat-vacio" id="chat-vacio">
+                        Todavía no hay mensajes. ¡Escribe el primero!
+                    </p>
+                <?php else: ?>
+                    <?php foreach ($mensajes as $mensaje): ?>
+                        <div class="chat-mensaje <?= $mensaje['autor_matricula'] === $autor['matricula'] ? 'mio' : '' ?>"
+                             data-id="<?= (int) $mensaje['id'] ?>">
+                            <div class="chat-cabeza">
+                                <strong><?= e($mensaje['autor_nombre']) ?></strong>
+                                <time><?= e($mensaje['hora']) ?></time>
+                            </div>
+                            <p><?= e($mensaje['mensaje']) ?></p>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <form class="chat-form" id="chat-form" method="POST"
+                  action="<?= e(enlace('p9/chat/enviar')) ?>">
+                <input type="hidden" name="token" value="<?= e(chat_token()) ?>">
+                <label class="visually-hidden" for="chat-texto">Mensaje</label>
+                <textarea id="chat-texto" name="mensaje" maxlength="500" rows="2"
+                          placeholder="Escribe un mensaje…" required></textarea>
+                <button type="submit" class="boton boton-verde" id="chat-enviar">Enviar</button>
+            </form>
+
+            <p class="chat-estado" id="chat-estado">
+                <span class="chat-punto"></span>
+                <span id="chat-estado-texto">Se actualiza automáticamente cada 3 segundos.</span>
+            </p>
+        </div>
+    </div>
+
+    <script src="<?= e(enlace('assets/p9/chat.js')) ?>"></script>
+
+    <?php
+    require __DIR__ . '/parciales/pie.php';
+    exit;
 }
 
 // ------------------------------------------------------------------
@@ -261,6 +595,8 @@ if ($vista === '') {
         <div class="acciones-tienda">
             <a class="boton boton-verde" data-track="p9: agregar producto"
                href="<?= e(enlace('p9/crear')) ?>">Agregar producto</a>
+            <a class="boton boton-chat" data-track="p9: abrir chat"
+               href="<?= e(enlace('p9/chat')) ?>">Chat de la tienda</a>
             <a class="boton boton-gris" data-track="p9: ver métricas"
                href="<?= e(enlace('p8/panel')) ?>">Ver métricas de la tienda</a>
         </div>

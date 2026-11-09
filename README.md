@@ -11,7 +11,7 @@ Todas las prácticas en un solo sitio, separadas por el menú de la barra superi
 | `/p6` | Práctica 6 · Encuesta de satisfacción                           |
 | `/p7` | Práctica 7 · Incrustación de un video                           |
 | `/p8` | Práctica 8 · Panel de métricas del sitio                        |
-| `/p9` | Práctica 9 · CRUD de una tienda tipo OXXO                      |
+| `/p9` | Práctica 9 · CRUD de una tienda tipo OXXO y chat               |
 
 ---
 
@@ -50,6 +50,7 @@ Las tablas se crean solas la primera vez que se abre cada práctica:
 | `respuestas`       | p6       | Respuestas de la encuesta                      |
 | `eventos`          | p8       | Vistas, clics y tiempo de todo el sitio        |
 | `productos_tienda` | p9       | Productos, precios y existencias de la tienda  |
+| `chat_mensajes`    | p9       | Mensajes del chat entre usuarios               |
 
 ## 3. Ejecutar
 
@@ -140,7 +141,7 @@ web_general/
     ├── foto.jpg
     ├── p4/                 # api.json, main.js, mapa.js, estilos.css
     ├── p8/                 # tracker.js, panel.js, estilos.css
-    └── p9/                 # estilos.css
+    └── p9/                 # estilos.css, chat.js
 ```
 
 ### Práctica 8 · Métricas del sitio
@@ -167,13 +168,28 @@ TRUNCATE TABLE eventos;
 ### Práctica 9 · Tienda tipo OXXO
 
 CRUD de productos con búsqueda, filtro por categoría, control de existencias y
-promociones. Usa la tabla `productos_tienda` y se puede abrir sin iniciar sesión.
+promociones. Usa la tabla `productos_tienda`. La tienda se puede abrir sin
+iniciar sesión; el chat sí requiere una cuenta.
 
 - `/p9` lista los productos y muestra el valor del inventario.
 - `/p9/crear` agrega un producto.
 - `/p9/editar/{id}` lo modifica.
 - `/p9/eliminar/{id}` lo borra mediante POST.
 - `/p9/ejemplo` carga un catálogo de ejemplo si la tienda está vacía.
+- `/p9/chat` abre el chat de la tienda. Usa la cuenta con la que se inició
+  sesión en la práctica 5 y guarda los mensajes en `chat_mensajes`.
+  - `GET /p9/chat/mensajes?desde={id}` devuelve los mensajes nuevos en JSON.
+  - `POST /p9/chat/enviar` guarda un mensaje.
+  - La página se actualiza sola cada 3 segundos. Si JavaScript está apagado,
+    el formulario sigue funcionando con un POST normal.
+
+> Para usar el chat hay que iniciar sesión o crear una cuenta desde la
+> práctica 5. Los mensajes se muestran escapados y se guardan con consultas
+> preparadas. Para reiniciar la conversación:
+
+```sql
+TRUNCATE TABLE chat_mensajes;
+```
 
 ### La práctica 4 necesita tu API Key
 
