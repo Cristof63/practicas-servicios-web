@@ -176,6 +176,10 @@ iniciar sesión; el chat sí requiere una cuenta.
 - `/p9/editar/{id}` lo modifica.
 - `/p9/eliminar/{id}` lo borra mediante POST.
 - `/p9/ejemplo` carga un catálogo de ejemplo si la tienda está vacía.
+- `/p9/admin` abre el **panel de administración**. Credenciales de ejemplo:
+  matrícula `777` y contraseña `admin`. La sesión de administrador es
+  independiente de la sesión de la práctica 5 y se cierra en
+  `/p9/admin/salir`.
 - `/p9/chat` abre el chat de la tienda. Usa la cuenta con la que se inició
   sesión en la práctica 5 y guarda los mensajes en `chat_mensajes`.
   - `GET /p9/chat/mensajes?desde={id}` devuelve los mensajes nuevos en JSON.
@@ -190,6 +194,12 @@ iniciar sesión; el chat sí requiere una cuenta.
 ```sql
 TRUNCATE TABLE chat_mensajes;
 ```
+
+El panel `/p9/admin` muestra el resumen del inventario y la tabla completa de
+productos con acciones para agregar, editar y eliminar. Las credenciales
+`777` / `admin` son solo para esta práctica; para cambiarlas se edita la
+constante `ADMIN_P9_PASSWORD_HASH` en `p9.php` con un hash generado por
+`password_hash()`.
 
 Al final de `/p9` también están las secciones **Sucursales de la tienda** y
 **Video de la tienda**:

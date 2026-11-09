@@ -38,7 +38,7 @@ $tarjetas = [
     ],
     [
         'titulo' => 'Práctica 9',
-        'texto' => 'CRUD de una tienda tipo OXXO: productos, precios, inventario, promociones, chat entre usuarios y video.',
+        'texto' => 'CRUD de una tienda tipo OXXO: productos, precios, inventario, promociones, chat entre usuarios, video, mapa de sucursales y panel de administración.',
         'ruta' => '/p9',
     ],
 ];

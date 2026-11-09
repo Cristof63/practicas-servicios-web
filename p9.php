@@ -21,6 +21,10 @@ $id = isset($partes[1]) ? (int) $partes[1] : null;
 
 $scriptsP9 = true;
 
+// Credenciales del administrador de la tienda.
+const ADMIN_P9_MATRICULA = '777';
+const ADMIN_P9_PASSWORD_HASH = '$2y$12$s.fXFDO7BPiOnsY5JmSiveHScrd2ZBnF5Ph3HCryM9AuHBTu0A1/O';
+
 crear_tabla('
     CREATE TABLE IF NOT EXISTS productos_tienda (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -123,6 +127,22 @@ function guardar_producto(array $datos): void
         'codigo_barras' => $datos['codigo_barras'],
         'promocion' => $datos['promocion'] !== '' ? $datos['promocion'] : null,
     ]);
+}
+
+/**
+ * Indica si hay una sesión de administrador de la tienda abierta.
+ */
+function admin_p9_activo(): bool
+{
+    return !empty($_SESSION['admin_p9']);
+}
+
+/**
+ * Ruta a la que se vuelve después de guardar o eliminar un producto.
+ */
+function destino_productos(): string
+{
+    return admin_p9_activo() ? 'p9/admin' : 'p9';
 }
 
 // ------------------------------------------------------------------
@@ -322,7 +342,287 @@ if ($vista === 'ejemplo') {
         aviso('Los productos de ejemplo ya estaban cargados.', 'info');
     }
 
-    redirigir('p9');
+    redirigir(destino_productos());
+}
+
+// ------------------------------------------------------------------
+// ADMINISTRACIÓN DE LA TIENDA
+// ------------------------------------------------------------------
+
+if ($vista === 'admin') {
+    // Cerrar la sesión de administrador.
+    if ($accion === 'salir') {
+        unset($_SESSION['admin_p9'], $_SESSION['admin_p9_matricula']);
+        aviso('Cerraste la sesión de administrador.', 'info');
+        redirigir('p9/admin');
+    }
+
+    // Validar las credenciales del administrador.
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $matricula = trim((string) ($_POST['matricula'] ?? ''));
+        $contrasena = (string) ($_POST['contrasena'] ?? '');
+
+        if (hash_equals(ADMIN_P9_MATRICULA, $matricula)
+            && password_verify($contrasena, ADMIN_P9_PASSWORD_HASH)
+        ) {
+            session_regenerate_id(true);
+            $_SESSION['admin_p9'] = true;
+            $_SESSION['admin_p9_matricula'] = ADMIN_P9_MATRICULA;
+            aviso('Bienvenido al panel de administración.', 'exito');
+            redirigir('p9/admin');
+        }
+
+        aviso('Matrícula o contraseña de administrador incorrectas.', 'error');
+    }
+
+    $titulo = 'Práctica 9 · Administración de la tienda';
+
+    // Sin sesión de administrador se muestra el formulario de acceso.
+    if (!admin_p9_activo()) {
+        require __DIR__ . '/parciales/cabecera.php';
+        ?>
+
+        <div class="tienda-oxxo admin-tienda">
+            <div class="banner-oxxo admin-banner">
+                <img class="logo-oxxo" src="<?= e(enlace('assets/p9/logo.png')) ?>" alt="Logo OXXO">
+                <div>
+                    <h1>Administración de la tienda</h1>
+                    <p>Acceso exclusivo para el administrador de la tienda OXXO.</p>
+                </div>
+            </div>
+
+            <div class="admin-login">
+                <div class="admin-login-tarjeta">
+                    <h2>Iniciar sesión como administrador</h2>
+                    <p class="pequena">
+                        Ingresa la matrícula y la contraseña de administrador para
+                        administrar los productos de la tienda.
+                    </p>
+
+                    <form method="POST" action="<?= e(enlace('p9/admin')) ?>">
+                        <div class="campo">
+                            <label for="admin-matricula">Matrícula</label>
+                            <input type="text" id="admin-matricula" name="matricula"
+                                   autocomplete="username" required autofocus>
+                        </div>
+
+                        <div class="campo">
+                            <label for="admin-contrasena">Contraseña</label>
+                            <input type="password" id="admin-contrasena" name="contrasena"
+                                   autocomplete="current-password" required>
+                        </div>
+
+                        <button type="submit" class="boton boton-admin">
+                            Entrar al panel
+                        </button>
+                    </form>
+
+                    <p class="pequena centrado admin-login-volver">
+                        <a href="<?= e(enlace('p9')) ?>">Volver a la tienda</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <?php
+        require __DIR__ . '/parciales/pie.php';
+        exit;
+    }
+
+    $busqueda = trim((string) ($_GET['q'] ?? ''));
+    $categoria = trim((string) ($_GET['categoria'] ?? ''));
+
+    $condiciones = [];
+    $parametros = [];
+
+    if ($busqueda !== '') {
+        $condiciones[] = '(nombre LIKE :q_nombre
+            OR marca LIKE :q_marca
+            OR categoria LIKE :q_categoria
+            OR codigo_barras LIKE :q_codigo)';
+        $parametros['q_nombre'] = '%' . $busqueda . '%';
+        $parametros['q_marca'] = '%' . $busqueda . '%';
+        $parametros['q_categoria'] = '%' . $busqueda . '%';
+        $parametros['q_codigo'] = '%' . $busqueda . '%';
+    }
+
+    if ($categoria !== '') {
+        $condiciones[] = 'categoria = :categoria';
+        $parametros['categoria'] = $categoria;
+    }
+
+    $sql = 'SELECT * FROM productos_tienda';
+    if ($condiciones !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $condiciones);
+    }
+    $sql .= ' ORDER BY categoria, nombre';
+
+    $consulta = bd()->prepare($sql);
+    $consulta->execute($parametros);
+    $productos = $consulta->fetchAll();
+
+    $categorias = bd()->query(
+        'SELECT DISTINCT categoria FROM productos_tienda ORDER BY categoria'
+    )->fetchAll(PDO::FETCH_COLUMN);
+
+    $totalProductos = (int) bd()->query(
+        'SELECT COUNT(*) FROM productos_tienda'
+    )->fetchColumn();
+    $totalPiezas = (int) bd()->query(
+        'SELECT COALESCE(SUM(existencia), 0) FROM productos_tienda'
+    )->fetchColumn();
+    $valorInventario = (float) bd()->query(
+        'SELECT COALESCE(SUM(precio * existencia), 0) FROM productos_tienda'
+    )->fetchColumn();
+    $productosBajos = (int) bd()->query(
+        'SELECT COUNT(*) FROM productos_tienda WHERE existencia > 0 AND existencia < 10'
+    )->fetchColumn();
+    $productosAgotados = (int) bd()->query(
+        'SELECT COUNT(*) FROM productos_tienda WHERE existencia = 0'
+    )->fetchColumn();
+    $totalPromociones = (int) bd()->query(
+        "SELECT COUNT(*) FROM productos_tienda
+         WHERE promocion IS NOT NULL AND promocion <> ''"
+    )->fetchColumn();
+
+    require __DIR__ . '/parciales/cabecera.php';
+    ?>
+
+    <div class="tienda-oxxo admin-tienda">
+        <div class="banner-oxxo admin-banner">
+            <img class="logo-oxxo" src="<?= e(enlace('assets/p9/logo.png')) ?>" alt="Logo OXXO">
+            <div>
+                <h1>Panel de administración</h1>
+                <p>
+                    Tienda OXXO · Sesión de administrador
+                    (<?= e($_SESSION['admin_p9_matricula'] ?? ADMIN_P9_MATRICULA) ?>)
+                </p>
+            </div>
+        </div>
+
+        <div class="admin-barra">
+            <span class="admin-insignia">Admin</span>
+            <a class="boton boton-verde" data-track="p9 admin: agregar producto"
+               href="<?= e(enlace('p9/crear')) ?>">Agregar producto</a>
+            <a class="boton boton-gris" data-track="p9 admin: ver tienda"
+               href="<?= e(enlace('p9')) ?>">Ver tienda</a>
+            <a class="boton boton-chat" data-track="p9 admin: abrir chat"
+               href="<?= e(enlace('p9/chat')) ?>">Chat</a>
+            <a class="boton boton-gris" data-track="p9 admin: ver métricas"
+               href="<?= e(enlace('p8/panel')) ?>">Métricas</a>
+            <a class="boton boton-rojo" data-track="p9 admin: cerrar sesión"
+               href="<?= e(enlace('p9/admin/salir')) ?>">Cerrar sesión admin</a>
+        </div>
+
+        <div class="resumen-tienda admin-resumen">
+            <div><strong><?= $totalProductos ?></strong><span>Productos</span></div>
+            <div><strong><?= $totalPiezas ?></strong><span>Piezas en tienda</span></div>
+            <div><strong>$<?= e(number_format($valorInventario, 2)) ?></strong><span>Valor del inventario</span></div>
+            <div><strong><?= $productosBajos ?></strong><span>Con pocas piezas</span></div>
+            <div><strong><?= $productosAgotados ?></strong><span>Agotados</span></div>
+            <div><strong><?= $totalPromociones ?></strong><span>Con promoción</span></div>
+        </div>
+
+        <form class="filtros-tienda" method="GET" action="<?= e(enlace('p9/admin')) ?>">
+            <input type="search" name="q" value="<?= e($busqueda) ?>"
+                   placeholder="Buscar producto, marca o código…">
+            <select name="categoria">
+                <option value="">Todas las categorías</option>
+                <?php foreach ($categorias as $opcion): ?>
+                    <option value="<?= e($opcion) ?>" <?= $opcion === $categoria ? 'selected' : '' ?>>
+                        <?= e($opcion) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <button type="submit" class="boton" data-track="p9 admin: filtrar productos">Filtrar</button>
+            <a class="boton boton-gris" data-track="p9 admin: limpiar filtros"
+               href="<?= e(enlace('p9/admin')) ?>">Limpiar</a>
+        </form>
+
+        <?php if ($productos): ?>
+            <div class="tabla-scroll">
+                <table class="tabla admin-tabla">
+                    <tr>
+                        <th>ID</th>
+                        <th>Código</th>
+                        <th>Producto</th>
+                        <th>Marca</th>
+                        <th>Categoría</th>
+                        <th>Precio</th>
+                        <th>Existencia</th>
+                        <th>Promoción</th>
+                        <th>Acciones</th>
+                    </tr>
+                    <?php foreach ($productos as $producto): ?>
+                        <?php
+                        $existencia = (int) $producto['existencia'];
+                        $claseStock = $existencia === 0
+                            ? 'agotado'
+                            : ($existencia < 10 ? 'pocas' : 'disponible');
+                        $textoStock = $existencia === 0
+                            ? 'Agotado'
+                            : ($existencia < 10 ? 'Pocas piezas' : 'Disponible');
+                        ?>
+                        <tr>
+                            <td><?= (int) $producto['id'] ?></td>
+                            <td><code><?= e($producto['codigo_barras']) ?></code></td>
+                            <td><?= e($producto['nombre']) ?></td>
+                            <td><?= e($producto['marca']) ?></td>
+                            <td><?= e($producto['categoria']) ?></td>
+                            <td class="precio-tienda">$<?= e(number_format((float) $producto['precio'], 2)) ?></td>
+                            <td>
+                                <?= $existencia ?>
+                                <span class="etiqueta-stock <?= e($claseStock) ?>"><?= e($textoStock) ?></span>
+                            </td>
+                            <td>
+                                <?php if ((string) $producto['promocion'] !== ''): ?>
+                                    <span class="etiqueta-promo"><?= e($producto['promocion']) ?></span>
+                                <?php else: ?>
+                                    <span class="texto-tenue">—</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="acciones">
+                                <a class="boton boton-chico"
+                                   data-track="p9 admin: editar <?= e($producto['nombre']) ?>"
+                                   href="<?= e(enlace('p9/editar/' . (int) $producto['id'])) ?>">Editar</a>
+
+                                <form class="formulario-en-linea" method="POST"
+                                      action="<?= e(enlace('p9/eliminar/' . (int) $producto['id'])) ?>">
+                                    <button type="submit" class="boton boton-chico boton-rojo"
+                                            data-track="p9 admin: eliminar <?= e($producto['nombre']) ?>">
+                                        Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="aviso aviso-info">
+                <?php if ($totalProductos === 0): ?>
+                    <p>Todavía no hay productos en la tienda.</p>
+                    <form method="POST" action="<?= e(enlace('p9/ejemplo')) ?>">
+                        <button type="submit" class="boton boton-verde"
+                                data-track="p9 admin: cargar catálogo de ejemplo">
+                            Cargar catálogo de ejemplo
+                        </button>
+                    </form>
+                <?php else: ?>
+                    No se encontraron productos con esa búsqueda o categoría.
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <p class="pequena admin-nota">
+            Desde este panel puedes agregar, editar y eliminar productos de la tienda.
+            La tienda pública sigue disponible para consultar el catálogo.
+        </p>
+    </div>
+
+    <?php
+    require __DIR__ . '/parciales/pie.php';
+    exit;
 }
 
 // ------------------------------------------------------------------
@@ -660,6 +960,10 @@ if ($vista === '') {
                href="#video-tienda">Video de la tienda</a>
             <a class="boton boton-mapa" data-track="p9: ver sucursales"
                href="#sucursales">Sucursales</a>
+            <a class="boton boton-admin" data-track="p9: abrir administración"
+               href="<?= e(enlace('p9/admin')) ?>">
+                <?= admin_p9_activo() ? 'Panel admin' : 'Admin' ?>
+            </a>
             <a class="boton boton-gris" data-track="p9: ver métricas"
                href="<?= e(enlace('p8/panel')) ?>">Ver métricas de la tienda</a>
         </div>
@@ -828,7 +1132,7 @@ if ($vista === 'crear') {
         }
 
         aviso('Producto agregado correctamente.', 'exito');
-        redirigir('p9');
+        redirigir(destino_productos());
     }
 
     require __DIR__ . '/parciales/cabecera.php';
@@ -893,7 +1197,7 @@ if ($vista === 'crear') {
                         <button type="submit" class="boton boton-verde"
                                 data-track="p9: guardar producto nuevo">Guardar</button>
                         <a class="boton boton-gris" data-track="p9: cancelar alta"
-                           href="<?= e(enlace('p9')) ?>">Cancelar</a>
+                           href="<?= e(enlace(destino_productos())) ?>">Cancelar</a>
                     </form>
                 </div>
             </div>
@@ -959,7 +1263,7 @@ if ($vista === 'editar' && $id !== null) {
         }
 
         aviso('Producto modificado correctamente.', 'exito');
-        redirigir('p9');
+        redirigir(destino_productos());
     }
 
     require __DIR__ . '/parciales/cabecera.php';
@@ -1026,7 +1330,7 @@ if ($vista === 'editar' && $id !== null) {
                         <button type="submit" class="boton"
                                 data-track="p9: guardar cambios">Guardar cambios</button>
                         <a class="boton boton-gris" data-track="p9: cancelar edición"
-                           href="<?= e(enlace('p9')) ?>">Cancelar</a>
+                           href="<?= e(enlace(destino_productos())) ?>">Cancelar</a>
                     </form>
                 </div>
             </div>
@@ -1051,7 +1355,7 @@ if ($vista === 'eliminar' && $id !== null) {
     $consulta->execute(['id' => $id]);
 
     aviso('Producto eliminado correctamente.', 'info');
-    redirigir('p9');
+    redirigir(destino_productos());
 }
 
 redirigir('p9');
